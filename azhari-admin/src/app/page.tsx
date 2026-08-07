@@ -37,7 +37,10 @@ export default function HomePage() {
 
       <section className="max-w-3xl mx-auto px-6 py-14">
         <h2 className="text-2xl font-bold text-green-deep mb-4">عن المسابقة</h2>
-        <p className="text-gray-600 leading-8">{settings?.about_text || "..."}</p>
+        <p className="text-gray-600 leading-8">
+          {settings?.about_text ||
+            "مسابقة أزهري وأفتخر لحفظ القرآن الكريم، مسابقة سنوية تهدف إلى تشجيع طلاب المعاهد الأزهرية على حفظ كتاب الله عز وجل وإتقان تلاوته وتجويده، وتكريم المتفوقين منهم. يشرف على المسابقة الشيخ أنس عبد المؤمن، ويشارك فيها الطلاب من مختلف المراحل التعليمية والمحافظات."}
+        </p>
       </section>
 
       <section className="bg-green-deep/5 border-t border-b border-gold/20 py-14">

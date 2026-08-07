@@ -74,7 +74,7 @@ export default function RegisterPage() {
       <Nav />
       <div className="max-w-xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold text-green-deep mb-1">التسجيل في المسابقة</h1>
-        <p className="text-gray-500 text-sm mb-6">يرجى تعبئة جميع البيانات بدقة</p>
+        <p className="text-gray-500 text-sm mb-6">يرجى ملء جميع البيانات بدقة</p>
 
         {success && <div className="card bg-green/10 border-green text-green-deep text-sm mb-5">{success}</div>}
         {error && <div className="card bg-red-50 border-red-300 text-red-700 text-sm mb-5">{error}</div>}
