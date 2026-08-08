@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
+    <main className="page-fade">
       <Nav />
       <div className="max-w-md mx-auto px-6 py-16">
         <h1 className="text-2xl font-bold text-green-deep mb-6 text-center">تسجيل الدخول</h1>

@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html { font-size: 18px; } /* bumps every Tailwind text size site-wide */
 body { font-family: 'Cairo', Tahoma, Arial, sans-serif; background: #FAF6EC; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page-fade { animation: fadeIn .35s ease-out; }
 h1,h2,h3 { font-family: 'Amiri', 'Cairo', serif; }
 
 .btn-primary { @apply bg-green text-white font-bold py-2.5 px-5 rounded-lg hover:bg-green-light transition-colors disabled:opacity-50; }

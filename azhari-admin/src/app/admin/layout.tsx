@@ -14,7 +14,7 @@ const TABS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <main>
+    <main className="page-fade">
       <Nav />
       <AdminGuard>
         <div className="bg-green-deep">

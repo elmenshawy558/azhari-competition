@@ -296,11 +296,10 @@ security definer
 set search_path = public
 as $$
 declare
-  yr  text := to_char(now(), 'YYYY');
   cnt integer;
 begin
-  select count(*) into cnt from students where registration_number like ('AZH-' || yr || '-%');
-  return 'AZH-' || yr || '-' || lpad((cnt + 1)::text, 6, '0');
+  select count(*) into cnt from students;
+  return lpad((cnt + 1)::text, 6, '0');
 end;
 $$;
 

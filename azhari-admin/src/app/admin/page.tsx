@@ -7,7 +7,7 @@ import type { Student, Score } from "@/lib/types";
 interface Stats {
   total: number; approved: number; pending: number; rejected: number;
   winners: { name: string; regNumber: string; final: number }[];
-  byGovernorate: Record<string, number>;
+  byStage: Record<string, number>;
 }
 
 export default function AdminOverviewPage() {
@@ -19,8 +19,8 @@ export default function AdminOverviewPage() {
       const { data: scores } = await supabase.from("scores").select("*").order("rank", { ascending: true });
 
       const list = (students ?? []) as Student[];
-      const byGovernorate: Record<string, number> = {};
-      list.forEach((s) => { byGovernorate[s.governorate] = (byGovernorate[s.governorate] ?? 0) + 1; });
+      const byStage: Record<string, number> = {};
+      list.forEach((s) => { byStage[s.educational_stage] = (byStage[s.educational_stage] ?? 0) + 1; });
 
       const scoreList = (scores ?? []) as Score[];
       const winners = scoreList
@@ -36,7 +36,7 @@ export default function AdminOverviewPage() {
         pending: list.filter((s) => s.approval_status === "PENDING").length,
         rejected: list.filter((s) => s.approval_status === "REJECTED").length,
         winners,
-        byGovernorate,
+        byStage,
       });
     })();
   }, []);
@@ -81,12 +81,16 @@ export default function AdminOverviewPage() {
         </section>
 
         <section className="card">
-          <h2 className="font-bold mb-3">حسب المحافظة</h2>
-          <ul className="text-sm space-y-2">
-            {Object.entries(stats.byGovernorate).map(([g, n]) => (
-              <li key={g} className="flex justify-between border-b pb-2"><span>{g}</span><b>{n}</b></li>
-            ))}
-          </ul>
+          <h2 className="font-bold mb-3">حسب المرحلة التعليمية</h2>
+          {Object.keys(stats.byStage).length === 0 ? (
+            <p className="text-gray-400 text-sm">لا يوجد متسابقون بعد</p>
+          ) : (
+            <ul className="text-sm space-y-2">
+              {Object.entries(stats.byStage).map(([g, n]) => (
+                <li key={g} className="flex justify-between border-b pb-2"><span>{g}</span><b>{n}</b></li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>

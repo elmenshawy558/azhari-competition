@@ -11,7 +11,7 @@ const STATUS_LABEL: Record<string, string> = { PENDING: "قيد المراجعة
 
 export default function DashboardPage() {
   return (
-    <main>
+    <main className="page-fade">
       <Nav />
       <StudentGuard>
         <DashboardBody />
@@ -49,7 +49,6 @@ function DashboardBody() {
         <span className={`badge badge-${student.approval_status.toLowerCase()}`}>{STATUS_LABEL[student.approval_status]}</span>
         <dl className="grid grid-cols-2 gap-2 text-sm mt-4">
           <dt className="text-gray-500">رقم التسجيل</dt><dd className="font-semibold">{student.registration_number}</dd>
-          <dt className="text-gray-500">المحافظة</dt><dd>{student.governorate}</dd>
           <dt className="text-gray-500">المرحلة</dt><dd>{student.educational_stage}</dd>
         </dl>
         {student.approval_status === "REJECTED" && student.rejection_reason && (

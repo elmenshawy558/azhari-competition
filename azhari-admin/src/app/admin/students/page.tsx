@@ -39,8 +39,8 @@ export default function AdminStudentsPage() {
   }
 
   function exportCsv() {
-    const rows = [["رقم التسجيل", "الاسم", "الرقم القومي", "المحافظة", "الحالة"]];
-    students.forEach((s) => rows.push([s.registration_number, s.full_name, s.national_id, s.governorate, STATUS_LABEL[s.approval_status]]));
+    const rows = [["رقم التسجيل", "الاسم", "الرقم القومي", "الحالة"]];
+    students.forEach((s) => rows.push([s.registration_number, s.full_name, s.national_id, STATUS_LABEL[s.approval_status]]));
     const csv = "\uFEFF" + rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
@@ -74,7 +74,7 @@ export default function AdminStudentsPage() {
           <table className="w-full text-sm text-right">
             <thead>
               <tr className="border-b text-gray-500">
-                <th className="p-3">رقم التسجيل</th><th className="p-3">الاسم</th><th className="p-3">المحافظة</th>
+                <th className="p-3">رقم التسجيل</th><th className="p-3">الاسم</th>
                 <th className="p-3">الحالة</th><th className="p-3">إجراءات</th>
               </tr>
             </thead>
@@ -83,7 +83,6 @@ export default function AdminStudentsPage() {
                 <tr key={s.id} className="border-b">
                   <td className="p-3">{s.registration_number}</td>
                   <td className="p-3">{s.full_name}</td>
-                  <td className="p-3">{s.governorate}</td>
                   <td className="p-3"><span className={`badge badge-${s.approval_status.toLowerCase()}`}>{STATUS_LABEL[s.approval_status]}</span></td>
                   <td className="p-3 space-x-2 space-x-reverse whitespace-nowrap">
                     <button onClick={() => setEditing(s)} className="text-green-deep underline text-xs">تعديل</button>
@@ -118,8 +117,7 @@ function EditModal({ student, onClose, onSaved }: { student: Student; onClose: (
     setSaving(true);
     setError(null);
     const { error: err } = await supabase.from("students").update({
-      full_name: form.full_name, phone: form.phone, email: form.email, governorate: form.governorate,
-      city: form.city, memorization_level: form.memorization_level, educational_stage: form.educational_stage,
+      full_name: form.full_name, phone: form.phone, email: form.email, memorization_level: form.memorization_level, educational_stage: form.educational_stage,
       institute: form.institute, exam_date: form.exam_date, exam_time: form.exam_time, exam_place: form.exam_place,
     }).eq("id", student.id);
     setSaving(false);
@@ -139,10 +137,6 @@ function EditModal({ student, onClose, onSaved }: { student: Student; onClose: (
           <div className="grid grid-cols-2 gap-3">
             <L label="الهاتف"><input className="input" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></L>
             <L label="البريد"><input className="input" value={form.email} onChange={(e) => set("email", e.target.value)} /></L>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <L label="المحافظة"><input className="input" value={form.governorate} onChange={(e) => set("governorate", e.target.value)} /></L>
-            <L label="المدينة"><input className="input" value={form.city} onChange={(e) => set("city", e.target.value)} /></L>
           </div>
           <L label="مستوى الحفظ"><input className="input" value={form.memorization_level} onChange={(e) => set("memorization_level", e.target.value)} /></L>
           <div className="grid grid-cols-2 gap-3">

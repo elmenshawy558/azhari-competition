@@ -8,21 +8,29 @@ import type { Settings } from "@/lib/types";
 
 export default function HomePage() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
     supabase.from("settings").select("*").eq("id", "singleton").maybeSingle().then(({ data }) => {
       setSettings(data as Settings);
+      setSettingsLoaded(true);
     });
   }, []);
 
+  // Only show "closed" once we've actually loaded settings and it's
+  // explicitly false — never while still loading (was previously showing
+  // "closed" by default on every visit for a split second, or permanently
+  // if the fetch failed, which is the wrong failure mode for this).
+  const isOpen = !settingsLoaded || settings?.registration_open !== false;
+
   return (
-    <main>
+    <main className="page-fade">
       <Nav />
       <header className="bg-green-deep text-white text-center py-16 px-6">
         <h1 className="text-4xl font-bold text-gold-light mb-2">أزهري وأفتخر</h1>
         <p className="text-lg mb-1">مسابقة حفظ القرآن الكريم</p>
         <p className="text-sm opacity-70 mb-8">تنظيم: الشيخ أنس عبد المؤمن</p>
-        {settings?.registration_open ? (
+        {isOpen ? (
           <Link href="/register" className="btn-gold inline-block">سجّل الآن</Link>
         ) : (
           <span className="inline-block bg-white/10 py-2.5 px-5 rounded-lg text-sm">باب التسجيل مغلق حاليًا</span>
@@ -53,9 +61,9 @@ export default function HomePage() {
               <h3 className="font-bold text-green-deep mb-3 border-b border-gold pb-2">أحاديث صحيحة</h3>
               <ul className="space-y-4 text-sm text-gray-700 leading-relaxed">
                 <li className="border-r-4 border-gold pr-3">
-                  <p className="font-semibold text-green-deep mb-1">عن عثمان رضي الله عنه:</p>
-                  <p>«الله عز وجل ما من أحد أفضل من آخر إلا بما في صدره من القرآن»</p>
-                  <p className="text-xs text-gray-500 mt-1">(رواه الدارمي)</p>
+                  <p className="font-semibold text-green-deep mb-1">عن أبي أمامة الباهلي رضي الله عنه:</p>
+                  <p>«اقرؤوا القرآن، فإنه يأتي يوم القيامة شفيعًا لأصحابه»</p>
+                  <p className="text-xs text-gray-500 mt-1">(صحيح مسلم)</p>
                 </li>
                 <li className="border-r-4 border-gold pr-3">
                   <p className="font-semibold text-green-deep mb-1">عن أبي موسى الأشعري رضي الله عنه:</p>
