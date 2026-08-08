@@ -6,7 +6,7 @@ import type { Student, Score } from "@/lib/types";
 
 interface Stats {
   total: number; approved: number; pending: number; rejected: number;
-  winners: { name: string; regNumber: string; final: number }[];
+  winners: { name: string; regNumber: string; final: number; level: string; rank: number }[];
   byStage: Record<string, number>;
 }
 
@@ -27,8 +27,16 @@ export default function AdminOverviewPage() {
         .filter((s) => s.rank !== null && s.rank <= 3 && s.status === "PASSED")
         .map((s) => {
           const student = list.find((st) => st.id === s.student_id);
-          return { name: student?.full_name ?? "—", regNumber: student?.registration_number ?? "—", final: s.final };
-        });
+          return {
+            name: student?.full_name ?? "—",
+            regNumber: student?.registration_number ?? "—",
+            final: s.final,
+            level: student?.memorization_level ?? "—",
+            rank: s.rank!,
+          };
+        })
+        // group visually by level, best rank first within each
+        .sort((a, b) => a.level.localeCompare(b.level) || a.rank - b.rank);
 
       setStats({
         total: list.length,
@@ -65,14 +73,14 @@ export default function AdminOverviewPage() {
 
       <div className="grid md:grid-cols-2 gap-5">
         <section className="card">
-          <h2 className="font-bold mb-3">الفائزون (أعلى 3 درجات)</h2>
+          <h2 className="font-bold mb-3">الفائزون (أعلى 3 في كل مستوى)</h2>
           {stats.winners.length === 0 ? (
-            <p className="text-gray-400 text-sm">لا توجد نتائج منشورة بعد</p>
+            <p className="text-gray-400 text-sm">لا توجد نتائج بعد</p>
           ) : (
             <ol className="space-y-2 text-sm">
-              {stats.winners.map((w, i) => (
+              {stats.winners.map((w) => (
                 <li key={w.regNumber} className="flex justify-between border-b pb-2">
-                  <span>{i + 1}. {w.name} <span className="text-gray-400">({w.regNumber})</span></span>
+                  <span>{w.rank}. {w.name} <span className="text-gray-400">({w.level})</span></span>
                   <b>{w.final}</b>
                 </li>
               ))}

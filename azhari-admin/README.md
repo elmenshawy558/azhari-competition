@@ -27,7 +27,7 @@ app doesn't have that problem, because the check isn't in the frontend:
   and `approval_status` forced by a trigger regardless of what's submitted
   — so there's no way to insert a row claiming to be someone else, or to
   register as already-approved. Likewise, a score's `final` total and
-  pass/fail `status` are always computed by a trigger from the four raw
+  pass/fail `status` are always computed by a trigger from whatever score
   inputs — never trusted from the client.
 - **The React components you'll see (`AdminGuard`, `StudentGuard`) are UX
   only.** They redirect an unauthorized visitor away from a page before it

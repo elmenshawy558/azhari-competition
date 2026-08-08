@@ -29,11 +29,7 @@ export interface Student {
 export interface Score {
   id: string;
   student_id: string;
-  tajweed: number;
-  memorization: number;
-  voice: number;
-  performance: number;
-  final: number;
+  final: number; // a single 0–100 score, entered directly by the admin
   status: ScoreStatus;
   rank: number | null;
   updated_at: string;

@@ -50,11 +50,7 @@ create table students (
 create table scores (
   id                 uuid primary key default gen_random_uuid(),
   student_id         uuid not null unique references students(id) on delete cascade,
-  tajweed            numeric not null default 0 check (tajweed between 0 and 25),
-  memorization        numeric not null default 0 check (memorization between 0 and 40),
-  voice              numeric not null default 0 check (voice between 0 and 20),
-  performance        numeric not null default 0 check (performance between 0 and 15),
-  final              numeric not null default 0,   -- computed by trigger, not the client
+  final              numeric not null default 0 check (final between 0 and 100), -- entered directly by the admin
   status             text not null default 'PENDING' check (status in ('PENDING','PASSED','FAILED')),
   rank               integer,                       -- computed by trigger, not the client
   updated_at         timestamptz not null default now()
@@ -146,15 +142,17 @@ before update on students
 for each row execute function set_updated_at();
 
 -- ----------------------------------------------------------------------------
--- Scores: final score + pass/fail computed server-side (never trust a client
--- -submitted "final" value), rank recomputed after any change.
+-- Scores: pass/fail is still computed server-side (never trust a client-
+-- submitted status), rank recomputed after any change. `final` itself is
+-- now entered directly by the admin (a single 0–100 score) rather than
+-- summed from components — the `between 0 and 100` check on the column
+-- is what stops an out-of-range value, not this trigger.
 -- ----------------------------------------------------------------------------
 create or replace function scores_before_write()
 returns trigger
 language plpgsql
 as $$
 begin
-  new.final := coalesce(new.tajweed,0) + coalesce(new.memorization,0) + coalesce(new.voice,0) + coalesce(new.performance,0);
   new.status := case when new.final >= 60 then 'PASSED' else 'FAILED' end;
   new.updated_at := now();
   return new;
@@ -170,11 +168,17 @@ returns trigger
 language plpgsql
 as $$
 begin
+  -- Ranked *within the student's own memorization level* — someone who
+  -- memorized 5 juz shouldn't be ranked against someone who memorized 30.
   update scores s
   set rank = ranked.rn
   from (
-    select id, row_number() over (order by final desc, updated_at asc) as rn
-    from scores
+    select sc.id, row_number() over (
+      partition by st.memorization_level
+      order by sc.final desc, sc.updated_at asc
+    ) as rn
+    from scores sc
+    join students st on st.id = sc.student_id
   ) ranked
   where ranked.id = s.id and (s.rank is distinct from ranked.rn);
   return null;

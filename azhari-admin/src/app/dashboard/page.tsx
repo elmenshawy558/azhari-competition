@@ -75,8 +75,9 @@ function DashboardBody() {
           <p className="text-gray-400 text-sm">جاري التحميل...</p>
         ) : score ? (
           <dl className="grid grid-cols-3 gap-2 text-sm">
-            <dt className="text-gray-500">الدرجة النهائية</dt><dd className="col-span-2 font-bold">{score.final}</dd>
-            <dt className="text-gray-500">الترتيب</dt><dd className="col-span-2">{score.rank ?? "—"}</dd>
+            <dt className="text-gray-500">الدرجة النهائية</dt><dd className="col-span-2 font-bold">{score.final} / 100</dd>
+            <dt className="text-gray-500">مستواك</dt><dd className="col-span-2">{student.memorization_level}</dd>
+            <dt className="text-gray-500">ترتيبك في مستواك</dt><dd className="col-span-2">{score.rank ?? "—"}</dd>
             <dt className="text-gray-500">الحالة</dt><dd className="col-span-2">{score.status === "PASSED" ? "ناجح" : "غير ناجح"}</dd>
           </dl>
         ) : (

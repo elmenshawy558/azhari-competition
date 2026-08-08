@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Nav } from "@/components/Nav";
@@ -18,6 +18,13 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Whenever an error appears, scroll to the top so the person actually
+  // sees it — without this, someone who's scrolled down filling the form
+  // gets a silent failure from their point of view.
+  useEffect(() => {
+    if (error) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [error]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

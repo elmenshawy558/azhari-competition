@@ -40,14 +40,15 @@ export default function AdminScoresPage() {
     if (!error) setSettings({ ...settings, results_published: next });
   }
 
-  async function saveScore(studentId: string, field: keyof Pick<Score, "tajweed" | "memorization" | "voice" | "performance">, value: number) {
-    const row = rows.find((r) => r.id === studentId);
-    if (!row) return;
-    const base = row.score ?? { tajweed: 0, memorization: 0, voice: 0, performance: 0 };
-    const payload = { student_id: studentId, ...base, [field]: value };
-    // final/status/rank are recomputed server-side by triggers regardless of
-    // what we send — this upsert only ever supplies the four raw inputs.
-    const { data, error } = await supabase.from("scores").upsert(payload, { onConflict: "student_id" }).select().single();
+  async function saveScore(studentId: string, value: number) {
+    const clamped = Math.max(0, Math.min(100, value));
+    // status/updated_at are recomputed server-side by a trigger regardless
+    // of what we send — this upsert only ever supplies the raw score.
+    const { data, error } = await supabase
+      .from("scores")
+      .upsert({ student_id: studentId, final: clamped }, { onConflict: "student_id" })
+      .select()
+      .single();
     if (!error && data) {
       setRows((prev) => prev.map((r) => (r.id === studentId ? { ...r, score: data as Score } : r)));
     }
@@ -71,13 +72,8 @@ export default function AdminScoresPage() {
         const reg = String(r.registrationNumber ?? r["رقم التسجيل"] ?? "").trim();
         const studentId = idByReg.get(reg);
         if (!studentId) { failed.push(`${reg}: رقم التسجيل غير موجود`); continue; }
-        const payload = {
-          student_id: studentId,
-          tajweed: Number(r.tajweed ?? r["تجويد"]) || 0,
-          memorization: Number(r.memorization ?? r["حفظ"]) || 0,
-          voice: Number(r.voice ?? r["صوت"]) || 0,
-          performance: Number(r.performance ?? r["أداء"]) || 0,
-        };
+        const rawScore = Number(r.score ?? r["الدرجة"]) || 0;
+        const payload = { student_id: studentId, final: Math.max(0, Math.min(100, rawScore)) };
         const { error } = await supabase.from("scores").upsert(payload, { onConflict: "student_id" });
         if (error) failed.push(`${reg}: ${error.message}`); else ok++;
       }
@@ -109,8 +105,7 @@ export default function AdminScoresPage() {
       <section className="card">
         <h2 className="font-bold mb-2">استيراد الدرجات من Excel/CSV</h2>
         <p className="text-sm text-gray-500 mb-3">
-          الأعمدة المطلوبة: registrationNumber (أو "رقم التسجيل")، tajweed (أو "تجويد" من 25)،
-          memorization (أو "حفظ" من 40)، voice (أو "صوت" من 20)، performance (أو "أداء" من 15)
+          الأعمدة المطلوبة: registrationNumber (أو "رقم التسجيل")، score (أو "الدرجة" من 100)
         </p>
         <input ref={fileInput} type="file" accept=".xlsx,.xls,.csv" disabled={importing}
           onChange={(e) => e.target.files?.[0] && handleImport(e.target.files[0])} className="input" />
@@ -125,9 +120,8 @@ export default function AdminScoresPage() {
           <table className="w-full text-sm text-right">
             <thead>
               <tr className="border-b text-gray-500">
-                <th className="p-3">رقم التسجيل</th><th className="p-3">الاسم</th>
-                <th className="p-3">تجويد/25</th><th className="p-3">حفظ/40</th><th className="p-3">صوت/20</th><th className="p-3">أداء/15</th>
-                <th className="p-3">النهائي</th><th className="p-3">الترتيب</th>
+                <th className="p-3">رقم التسجيل</th><th className="p-3">الاسم</th><th className="p-3">المستوى</th>
+                <th className="p-3">الدرجة /100</th><th className="p-3">الحالة</th><th className="p-3">الترتيب في المستوى</th>
               </tr>
             </thead>
             <tbody>
@@ -135,17 +129,18 @@ export default function AdminScoresPage() {
                 <tr key={r.id} className="border-b">
                   <td className="p-3">{r.registration_number}</td>
                   <td className="p-3">{r.full_name}</td>
-                  {(["tajweed", "memorization", "voice", "performance"] as const).map((field) => (
-                    <td className="p-2" key={field}>
-                      <ScoreInput value={r.score?.[field] ?? 0} onSave={(v) => saveScore(r.id, field, v)} />
-                    </td>
-                  ))}
-                  <td className="p-3 font-bold">{r.score?.final ?? "-"}</td>
+                  <td className="p-3 text-gray-500">{r.memorization_level}</td>
+                  <td className="p-2">
+                    <ScoreInput value={r.score?.final ?? 0} onSave={(v) => saveScore(r.id, v)} />
+                  </td>
+                  <td className="p-3">
+                    {r.score ? (r.score.status === "PASSED" ? <span className="badge badge-approved">ناجح</span> : <span className="badge badge-rejected">غير ناجح</span>) : "-"}
+                  </td>
                   <td className="p-3">{r.score?.rank ?? "-"}</td>
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={8} className="p-8 text-center text-gray-400">لا يوجد متسابقون مقبولون بعد</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-gray-400">لا يوجد متسابقون مقبولون بعد</td></tr>
               )}
             </tbody>
           </table>
@@ -161,7 +156,7 @@ function ScoreInput({ value, onSave }: { value: number; onSave: (v: number) => v
   useEffect(() => setLocal(String(value)), [value]);
   return (
     <input
-      type="number" className="input w-16 py-1 px-2 text-center"
+      type="number" min={0} max={100} className="input w-20 py-1 px-2 text-center"
       value={local}
       onChange={(e) => setLocal(e.target.value)}
       onBlur={() => { const n = Number(local) || 0; onSave(n); }}
