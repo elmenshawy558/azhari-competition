@@ -42,16 +42,16 @@ export default function AdminScoresPage() {
 
   async function saveScore(studentId: string, value: number) {
     const clamped = Math.max(0, Math.min(100, value));
-    // status/updated_at are recomputed server-side by a trigger regardless
-    // of what we send — this upsert only ever supplies the raw score.
     const { data, error } = await supabase
       .from("scores")
       .upsert({ student_id: studentId, final: clamped }, { onConflict: "student_id" })
       .select()
       .single();
-    if (!error && data) {
-      setRows((prev) => prev.map((r) => (r.id === studentId ? { ...r, score: data as Score } : r)));
+    if (error) {
+      alert(`تعذر حفظ الدرجة: ${error.message}`);
+      return;
     }
+    if (data) setRows((prev) => prev.map((r) => (r.id === studentId ? { ...r, score: data as Score } : r)));
   }
 
   async function handleImport(file: File) {
@@ -150,16 +150,46 @@ export default function AdminScoresPage() {
   );
 }
 
+/**
+ * Normalizes Arabic-Indic (١٢٣) and Extended Arabic-Indic/Persian (۱۲۳)
+ * digits to plain Western digits (123) before parsing. Without this, a
+ * score typed on an Arabic keyboard layout can silently parse as 0 —
+ * type="number" inputs can also reject those characters outright at the
+ * browser level, which is why this uses a plain text input instead.
+ */
+function normalizeDigits(s: string): string {
+  const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+  const persian = "۰۱۲۳۴۵۶۷۸۹";
+  return s.replace(/[٠-٩۰-۹]/g, (ch) => {
+    const ai = arabicIndic.indexOf(ch);
+    if (ai > -1) return String(ai);
+    const pi = persian.indexOf(ch);
+    return pi > -1 ? String(pi) : ch;
+  });
+}
+
 /** Small input that only writes to Supabase on blur/Enter, not on every keystroke. */
 function ScoreInput({ value, onSave }: { value: number; onSave: (v: number) => void }) {
   const [local, setLocal] = useState(String(value));
   useEffect(() => setLocal(String(value)), [value]);
+
+  function commit() {
+    const cleaned = normalizeDigits(local).trim();
+    const n = Number(cleaned);
+    if (cleaned === "" || Number.isNaN(n)) {
+      alert(`"${local}" مش رقم صحيح — يرجى كتابة رقم من 0 إلى 100`);
+      setLocal(String(value)); // revert to last saved value, don't save 0
+      return;
+    }
+    onSave(n);
+  }
+
   return (
     <input
-      type="number" min={0} max={100} className="input w-20 py-1 px-2 text-center"
+      type="text" inputMode="numeric" className="input w-20 py-1 px-2 text-center"
       value={local}
       onChange={(e) => setLocal(e.target.value)}
-      onBlur={() => { const n = Number(local) || 0; onSave(n); }}
+      onBlur={commit}
       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
     />
   );
