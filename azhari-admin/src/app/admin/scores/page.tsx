@@ -121,7 +121,7 @@ export default function AdminScoresPage() {
             <thead>
               <tr className="border-b text-gray-500">
                 <th className="p-3">رقم التسجيل</th><th className="p-3">الاسم</th><th className="p-3">المستوى</th>
-                <th className="p-3">الدرجة /100</th><th className="p-3">الحالة</th><th className="p-3">الترتيب في المستوى</th>
+                <th className="p-3">الدرجة (%)</th><th className="p-3">الحالة</th><th className="p-3">الترتيب في المستوى</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +131,10 @@ export default function AdminScoresPage() {
                   <td className="p-3">{r.full_name}</td>
                   <td className="p-3 text-gray-500">{r.memorization_level}</td>
                   <td className="p-2">
-                    <ScoreInput value={r.score?.final ?? 0} onSave={(v) => saveScore(r.id, v)} />
+                    <div className="flex items-center gap-1.5">
+                      <ScoreInput value={r.score?.final ?? 0} onSave={(v) => saveScore(r.id, v)} />
+                      <span className="text-gray-500 text-sm">%</span>
+                    </div>
                   </td>
                   <td className="p-3">
                     {r.score ? (r.score.status === "PASSED" ? <span className="badge badge-approved">ناجح</span> : <span className="badge badge-rejected">غير ناجح</span>) : "-"}
