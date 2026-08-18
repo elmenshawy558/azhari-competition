@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Foundations ===== */
+html { font-size: 18px; }
+body { font-family: 'Cairo', Tahoma, Arial, sans-serif; background: #FAF7F0; color: #1C1B17; }
+h1, h2, h3, .display { font-family: 'Amiri', 'Cairo', Georgia, serif; }
+
+::selection { background: #EAF2F1; color: #123F3B; }
+
+*:focus-visible { outline: 2px solid #1F5C56; outline-offset: 2px; border-radius: 4px; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.page-fade { animation: fadeIn .4s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .page-fade { animation: none; }
+}
+
+/* ===== Signature element =====
+   A single recurring identity mark instead of a repeated pattern: a thin
+   vertical rule + dot beside section headers, echoing the illuminated
+   margin line of a manuscript page. Used once per section, not as
+   decoration scattered across the UI. */
+.margin-rule {
+  position: relative;
+  padding-inline-start: 1.1rem;
+}
+.margin-rule::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 2px;
+  background: #A9803F;
+  border-radius: 2px;
+}
+
+/* ===== Buttons ===== */
+.btn-primary { @apply bg-ink text-paper font-bold py-2.5 px-5 rounded-lg hover:bg-ink-soft transition-colors disabled:opacity-50; }
+.btn-gold { @apply bg-brass text-white font-bold py-2.5 px-5 rounded-lg hover:bg-brass-light transition-colors disabled:opacity-50; }
+.btn-outline { @apply border border-teal text-teal font-bold py-2 px-4 rounded-lg hover:bg-teal hover:text-white transition-colors; }
+.btn-sm { @apply text-sm py-1.5 px-3; }
+
+/* ===== Surfaces ===== */
+.card { @apply bg-white border border-line rounded-2xl p-5 shadow-card; }
+.input { @apply w-full border border-line rounded-lg px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal/25 focus:border-teal transition-shadow; }
+.label { @apply block mb-1.5 text-sm font-semibold text-ink-soft; }
+
+/* ===== Badges ===== */
+.badge { @apply inline-block px-3 py-0.5 rounded-full text-xs font-bold; }
+.badge-pending { @apply bg-brass-tint text-brass; }
+.badge-approved { @apply bg-success-tint text-success; }
+.badge-rejected { @apply bg-danger-tint text-danger; }
+
+/* ===== Empty / success states ===== */
+.empty-state { @apply text-center py-10 px-6; }
+.empty-state .icon { @apply w-11 h-11 rounded-full bg-teal-tint text-teal flex items-center justify-center mx-auto mb-3 text-lg; }
+.empty-state p { @apply text-ink-faint text-sm; }
